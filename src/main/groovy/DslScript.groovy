@@ -1,6 +1,13 @@
-class DslScript {
+abstract class DslScript extends Script {
 
-    def getTrue() {
-        true
+    private boolean state
+
+    def getState() {
+        state
     }
+
+    def setState() {
+        state = true
+    }
+
 }
