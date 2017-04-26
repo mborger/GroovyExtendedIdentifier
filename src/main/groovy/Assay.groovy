@@ -1,0 +1,3 @@
+class Assay {
+    String name
+}
