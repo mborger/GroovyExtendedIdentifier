@@ -1,1 +1,1 @@
-setState()
+setName <>

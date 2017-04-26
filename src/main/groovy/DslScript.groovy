@@ -1,13 +1,9 @@
 abstract class DslScript extends Script {
 
-    private boolean state
+    String name
 
-    def getState() {
-        state
-    }
-
-    def setState() {
-        state = true
+    def setName(String name) {
+        this.name = name
     }
 
 }

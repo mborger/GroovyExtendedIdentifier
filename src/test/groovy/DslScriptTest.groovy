@@ -5,7 +5,8 @@ class DslScriptTest extends Specification {
     def "Script Print Message"() {
         setup:
         def conf = new CompilerConfiguration()
-        conf.setScriptBaseClass(DslScript.name)
+        conf.scriptBaseClass = DslScript.name
+        conf.pluginFactory = new CustomPluginFactory()
         def shell = new GroovyShell(this.class.classLoader, new Binding(), conf)
 
         when:
@@ -13,6 +14,6 @@ class DslScriptTest extends Specification {
         result.run()
 
         then:
-        result.getState()
+        result.name == "<>"
     }
 }
