@@ -5,7 +5,7 @@ import org.codehaus.groovy.syntax.Reduction
 
 class CustomParser extends AntlrParserPlugin {
 
-    private static String METHOD = "setName"
+    private static String METHOD = "assay"
 
     @Override
     Reduction parseCST(SourceUnit sourceUnit, Reader reader) throws CompilationFailedException {
@@ -27,10 +27,15 @@ class CustomParser extends AntlrParserPlugin {
 
     private static String globMethodArgument(String line) {
         StringBuilder sb = new StringBuilder(line)
-        def insertPosition = sb.indexOf(METHOD) + METHOD.length() + 1
-        sb.insert(insertPosition, "'")
-        sb.append("'")
+        def argumentPosition = sb.indexOf(METHOD) + METHOD.length() + 1
+        def base64Argument = '__' + toHex(sb.substring(argumentPosition))
+        sb.delete(argumentPosition, sb.length())
+        sb.insert(argumentPosition, base64Argument)
         sb.toString()
+    }
+
+    private static String toHex(String input) {
+        String.format("%x", new BigInteger(1, input.getBytes()))
     }
 
 }

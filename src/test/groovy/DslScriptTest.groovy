@@ -15,5 +15,6 @@ class DslScriptTest extends Specification {
 
         then:
         result.assays.size() == 1
+        result.assays[0].name == "ab"
     }
 }

@@ -1,6 +1,7 @@
 abstract class DslScript extends Script {
 
     Set<Assay> assays = new HashSet<>()
+    Device device
 
     def assay(String name) {
         def assay = new Assay(name: name)
@@ -9,7 +10,11 @@ abstract class DslScript extends Script {
     }
 
     def device(String name) {
-        new Device(name: name)
+        device = new Device(name: name)
+    }
+
+    def propertyMissing(String propertyName) {
+        propertyName
     }
 
 }

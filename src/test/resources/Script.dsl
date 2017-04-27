@@ -1,6 +1,6 @@
-assay "a1"
+assay T143GA->C
 
-device "Laser Thing" with {
+device "foo" with {
     voltage 10
-    assay a1
+    assay T143GA->C
 }
