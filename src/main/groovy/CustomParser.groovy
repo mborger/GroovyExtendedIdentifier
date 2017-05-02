@@ -28,14 +28,10 @@ class CustomParser extends AntlrParserPlugin {
     private static String globMethodArgument(String line) {
         StringBuilder sb = new StringBuilder(line)
         def argumentPosition = sb.indexOf(METHOD) + METHOD.length() + 1
-        def base64Argument = '__' + toHex(sb.substring(argumentPosition))
+        def base64Argument = '__' + sb.substring(argumentPosition).bytes.encodeHex()
         sb.delete(argumentPosition, sb.length())
         sb.insert(argumentPosition, base64Argument)
         sb.toString()
-    }
-
-    private static String toHex(String input) {
-        String.format("%x", new BigInteger(1, input.getBytes()))
     }
 
 }
