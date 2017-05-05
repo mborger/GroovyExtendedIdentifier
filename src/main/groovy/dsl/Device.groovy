@@ -1,3 +1,5 @@
+package dsl
+
 class Device {
     String name
     private int voltage

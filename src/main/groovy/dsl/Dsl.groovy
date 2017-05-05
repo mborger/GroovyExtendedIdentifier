@@ -1,10 +1,11 @@
-abstract class DslScript extends Script {
+package dsl
 
+abstract class Dsl extends DslScript {
     Set<Assay> assays = new HashSet<>()
     Device device
     def identifierProperties = Collections.synchronizedMap([:])
 
-    DslScript() {
+    Dsl() {
         String.metaClass.setBindingValue = { String value ->
             identifierProperties[System.identityHashCode(delegate)] = value
         }
@@ -13,6 +14,7 @@ abstract class DslScript extends Script {
         }
     }
 
+    @DslIdentifier
     def assay(String name) {
         def assay = new Assay(name: name)
         assays.add(assay)
@@ -21,15 +23,6 @@ abstract class DslScript extends Script {
 
     def device(String name) {
         device = new Device(name: name)
-    }
-
-    def propertyMissing(String propertyName) {
-        if (propertyName.startsWith("__")) {
-            def identifier = new String(propertyName.substring(2).decodeHex())
-            identifier.setBindingValue(propertyName)
-            return identifier
-        }
-        propertyName
     }
 
 }

@@ -1,3 +1,5 @@
+package dsl
+
 class DslBinding extends Binding {
 
     @Override
