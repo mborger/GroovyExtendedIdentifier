@@ -8,6 +8,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME
 
 @Target(METHOD)
 @Retention(RUNTIME)
-@interface DslIdentifier {
+@interface ExtendedStringArgument {
 
 }

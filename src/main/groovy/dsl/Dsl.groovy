@@ -14,7 +14,7 @@ abstract class Dsl extends DslScript {
         }
     }
 
-    @DslIdentifier
+    @ExtendedStringArgument
     def assay(String name) {
         def assay = new Assay(name: name)
         assays.add(assay)

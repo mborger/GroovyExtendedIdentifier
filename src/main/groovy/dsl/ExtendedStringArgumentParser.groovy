@@ -9,13 +9,13 @@ import org.codehaus.groovy.syntax.Reduction
 
 import java.lang.reflect.Method
 
-class CustomParser extends AntlrParserPlugin {
+class ExtendedStringArgumentParser extends AntlrParserPlugin {
 
     private Set<String> identifierMethods = new HashSet<>()
 
-    CustomParser(String packageName) {
+    ExtendedStringArgumentParser(String packageName) {
         def scanner = new FastClasspathScanner(packageName)
-        scanner.matchClassesWithMethodAnnotation(DslIdentifier,
+        scanner.matchClassesWithMethodAnnotation(ExtendedStringArgument,
                 new MethodAnnotationMatchProcessor() {
                     @Override
                     void processMatch(Class<?> matchingClass, Method matchingMethod) {

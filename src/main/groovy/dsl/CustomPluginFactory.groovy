@@ -7,6 +7,6 @@ class CustomPluginFactory extends ParserPluginFactory {
     
     @Override
     ParserPlugin createParserPlugin() {
-        new CustomParser("dsl")
+        new ExtendedStringArgumentParser("dsl")
     }
 }
