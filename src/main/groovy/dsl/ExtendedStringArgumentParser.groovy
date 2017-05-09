@@ -19,6 +19,9 @@ class ExtendedStringArgumentParser extends AntlrParserPlugin {
                 new MethodAnnotationMatchProcessor() {
                     @Override
                     void processMatch(Class<?> matchingClass, Method matchingMethod) {
+                        if (!String.isAssignableFrom(matchingMethod.parameterTypes[0])) {
+                            throw new IllegalStateException("The first argument must be a String")
+                        }
                         identifierMethods.add(matchingMethod.getName())
                     }
                 }
