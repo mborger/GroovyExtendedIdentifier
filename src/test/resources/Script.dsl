@@ -1,5 +1,7 @@
 assay RS123A->C
 
-compositeAssay "foo" with {
+compositeAssay foo-bar with {
     assay RS123A->C
 }
+
+compositeAssay bar-foo

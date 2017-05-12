@@ -3,8 +3,11 @@ package my.dsl
 import com.borgernet.dsl.DslScript
 import com.borgernet.dsl.ExtendedStringParameter
 
+import static com.borgernet.dsl.ExtendedStringParameter.EOL
+
 abstract class Dsl extends DslScript {
     Set<Assay> assays = new HashSet<>()
+    Set<CompositeAssay> compositeAssays = new HashSet<>();
 
     @ExtendedStringParameter
     def assay(String name) {
@@ -14,9 +17,10 @@ abstract class Dsl extends DslScript {
         assay
     }
 
+    @ExtendedStringParameter(endTokens = ["with", EOL])
     def compositeAssay(String name) {
         def compositeAssay = new CompositeAssay(name: name)
-        getBinding().setVariable(name, compositeAssay)
+        compositeAssays.add(compositeAssay)
         compositeAssay
     }
 

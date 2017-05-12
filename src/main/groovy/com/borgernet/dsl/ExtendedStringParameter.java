@@ -23,6 +23,11 @@ public @interface ExtendedStringParameter {
 
     /**
      * The tokens that mark the end of the String parameter
+     *
+     * The source lines will be matched against the tokens in
+     * the order provided. You will want to place the most
+     * specific first and end with EOL if you want to support
+     * matching to the end of the line.
      */
     String[] endTokens() default EOL;
 }

@@ -27,6 +27,8 @@ class DslTest extends Specification {
 
         then:
         result.assays.size() == 1
-        result.assays[0].name == "RS123A->C"
+        result.assays.find { it.name == "RS123A->C" }
+        result.compositeAssays.size() == 2
+        result.compositeAssays.find { it.name == "foo-bar" }
     }
 }
