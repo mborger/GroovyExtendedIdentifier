@@ -2,28 +2,27 @@
 Matthew Borger <matthew@borgernet.com>
 2017-04-17
 
-I had just created what I thought to be the most awesome domain specific language.
+I had just created what I thought to be the perfect domain specific language.
 It had fluent method chaining and closure configurations, all the cool tricks to create a natural DSL.
 There was only one sticking point that kept bothering me, the user defined names had to be valid groovy identifiers.
 At first I thought this was no problem, who would name things with weird characters like < or -?
 It turns out my customers in the genetics business do exactly that!
-They have assays with wonderful names such as `T143GA->C`.
-Thus begins my quest to fix those identifiers for my perfect DSL.
+They have assays with wonderful names such as `RS123A->C`.
+Thus began my quest to fix those identifiers for my perfect DSL.
 
 == My Ideal DSL
 My perfect DSL needs to not remind the user that they're writing code but just describing their domain.
 
 [source,groovy]
 ----
-assay T143GA->C
+assay RS123A->C
 
-device Laser Thing with {
-    voltage 10
-    assay T143GA->C
+compositeAssay RS456-789 with {
+    assay RS123A->C
 }
 ----
 
-Ideally I want to define an identifier named `T143GA->C` so I can take advantage of static typing in later methods.
+Ideally I want to define an identifier named `RS123A->C` so I can take advantage of static typing.
 Groovy provides several hooks for modifying its compilation process.
 I was excited to see the ability to modify the concrete syntax tree in the `ParserPlugin` but since they migrated to ANTLR it seems much more difficult to make modifications during tokenization before the AST is generated and the most basic grammar rules, such as taking `-` to subtract two identifiers, kick in causing the above to light up with errors.
 With that in mind I opted to modify the source before tokenization.

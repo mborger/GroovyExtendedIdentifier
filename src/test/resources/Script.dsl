@@ -1,7 +1,7 @@
 assay RS123A->C
 
-compositeAssay foo-bar with {
+compositeAssay RS456-789 with {
     assay RS123A->C
 }
 
-compositeAssay bar-foo
+compositeAssay *&<>WeirdName-_>
