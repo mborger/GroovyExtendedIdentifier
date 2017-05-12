@@ -62,7 +62,7 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
                     String hexIdentifier = "__" + encodeHex(identifier.getBytes());
                     StringBuilder modifiedLine = new StringBuilder(line);
                     int identifierIndex = modifiedLine.indexOf(identifier);
-                    modifiedLine.delete(identifierIndex, identifier.length());
+                    modifiedLine.delete(identifierIndex, identifierIndex + identifier.length());
                     modifiedLine.insert(identifierIndex, hexIdentifier);
                     return modifiedLine.toString();
                 })
