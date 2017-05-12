@@ -6,17 +6,6 @@ import com.borgernet.dsl.ExtendedStringParameter
 abstract class Dsl extends DslScript {
     Set<Assay> assays = new HashSet<>()
 
-    def identifierProperties = Collections.synchronizedMap([:])
-
-    Dsl() {
-        String.metaClass.setBindingValue = { String value ->
-            identifierProperties[System.identityHashCode(delegate)] = value
-        }
-        String.metaClass.getBindingValue = {->
-            identifierProperties[System.identityHashCode(delegate)]
-        }
-    }
-
     @ExtendedStringParameter
     def assay(String name) {
         def assay = new Assay(name: name)
