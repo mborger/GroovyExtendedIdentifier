@@ -1,6 +1,5 @@
 assay T143GA->C
 
-device "foo" with {
-    voltage 10
+compositeAssay "foo" with {
     assay T143GA->C
 }

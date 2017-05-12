@@ -1,8 +1,11 @@
-package dsl
+package my.dsl
+
+import com.borgernet.dsl.DslScript
+import com.borgernet.dsl.ExtendedStringParameter
 
 abstract class Dsl extends DslScript {
     Set<Assay> assays = new HashSet<>()
-    Device device
+
     def identifierProperties = Collections.synchronizedMap([:])
 
     Dsl() {
@@ -14,15 +17,16 @@ abstract class Dsl extends DslScript {
         }
     }
 
-    @ExtendedStringArgument
+    @ExtendedStringParameter
     def assay(String name) {
         def assay = new Assay(name: name)
         assays.add(assay)
         getBinding().setVariable(name, assay)
     }
 
-    def device(String name) {
-        device = new Device(name: name)
+    def compositeAssay(String name) {
+        def compositeAssay = new CompositeAssay(name: name)
+        getBinding().setVariable(name, compositeAssay)
     }
 
 }

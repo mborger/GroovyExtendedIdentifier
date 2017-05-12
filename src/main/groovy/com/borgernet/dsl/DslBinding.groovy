@@ -1,4 +1,4 @@
-package dsl
+package com.borgernet.dsl
 
 class DslBinding extends Binding {
 
