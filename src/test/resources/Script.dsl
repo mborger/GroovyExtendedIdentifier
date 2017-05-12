@@ -1,5 +1,5 @@
-assay T143GA->C
+assay RS123A->C
 
 compositeAssay "foo" with {
-    assay T143GA->C
+    assay RS123A->C
 }

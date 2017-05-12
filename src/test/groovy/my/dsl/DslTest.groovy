@@ -27,6 +27,6 @@ class DslTest extends Specification {
 
         then:
         result.assays.size() == 1
-        result.assays[0].name == "T143GA->C"
+        result.assays[0].name == "RS123A->C"
     }
 }
