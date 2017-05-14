@@ -9,11 +9,13 @@ import org.codehaus.groovy.syntax.Reduction;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.borgernet.dsl.ExtendedStringParameter.EOL;
 import static java.util.stream.Collectors.joining;
 import static org.codehaus.groovy.runtime.EncodingGroovyMethods.encodeHex;
 
@@ -38,9 +40,18 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
 
     private void storeMethodPatterns(String methodName, String[] endTokens) {
         String patternStart = methodName + identifierPattern;
-        for (String endToken : endTokens) {
-            methodPatterns.add(Pattern.compile(patternStart + endToken));
-        }
+        Arrays.stream(endTokens)
+                .sorted(this::preferNonEOLTokens)
+                .forEach(endToken -> methodPatterns.add(Pattern.compile(patternStart + endToken)));
+    }
+
+    /**
+     * Always order a non EOL token after anything else.
+     */
+    private int preferNonEOLTokens(String o1, String o2) {
+        if (EOL.equals(o1)) return 1;
+        if (EOL.equals(o2)) return -1;
+        return 0;
     }
 
     @Override

@@ -17,7 +17,7 @@ abstract class Dsl extends DslScript {
         assay
     }
 
-    @ExtendedStringParameter(endTokens = ["with", EOL])
+    @ExtendedStringParameter(endTokens = [EOL, "with"])
     def compositeAssay(String name) {
         def compositeAssay = new CompositeAssay(name: name)
         compositeAssays.add(compositeAssay)
