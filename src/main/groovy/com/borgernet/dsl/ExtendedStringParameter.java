@@ -21,7 +21,12 @@ public @interface ExtendedStringParameter {
      */
     String EOL = "$";
 
-    String IDENTIFIER_MARKER = "__";
+    /**
+     * Unicode character used to mark encoded identifiers
+     *
+     * https://en.wikipedia.org/wiki/Palatal_clicks
+     */
+    String IDENTIFIER_MARKER = "\u01C2";
 
     /**
      * The tokens that mark the end of the String parameter
