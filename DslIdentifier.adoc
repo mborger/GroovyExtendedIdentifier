@@ -5,7 +5,7 @@ Matthew Borger <matthew@borgernet.com>
 I had just created what I thought to be the perfect domain specific language.
 It had fluent method chaining and closure configurations, all the cool tricks to create a natural DSL.
 There was only one sticking point that kept bothering me, the user defined names had to be valid groovy identifiers.
-At first I thought this was no problem, who would name things with weird characters like < or -?
+At first I thought this was no problem, who would name things with weird characters like `<` or `-`?
 It turns out my customers in the genetics business do exactly that!
 They have assays with wonderful names such as `RS123A->C`.
 Thus began my quest to fix those identifiers for my perfect DSL.
@@ -23,10 +23,196 @@ compositeAssay RS456-789 with {
 ----
 
 Ideally I want to define an identifier named `RS123A->C` so I can take advantage of static typing.
-Groovy provides several hooks for modifying its compilation process.
-I was excited to see the ability to modify the concrete syntax tree in the `ParserPlugin` but since they migrated to ANTLR it seems much more difficult to make modifications during tokenization before the AST is generated and the most basic grammar rules, such as taking `-` to subtract two identifiers, kick in causing the above to light up with errors.
+It would be great if I could hook into the token parsing phase so characters that are normally treated as operators can be considered part of the identifier.
+One of Groovy's selling points is that there are hooks available for modifying the compilation process.
+Most of the documentation out on the Internet deals with creating abstract syntax tree transformations which is too late to make these identifier modifications.
+I need to modify the concrete syntax tree which Groovy exposes modification to by providing a custom `ParserPlugin`.
+Since Groovy migrated to ANTLR it seems much more difficult to make modifications during tokenization before the AST is generated and the most basic grammar rules, such as taking `-` to subtract two identifiers, kick in causing the above to light up with errors.
 With that in mind I opted to modify the source before tokenization.
 
 == Rewriting your Code
+I chose to perform the source modification in the `parseCST` method by examining every line of the source before passing it on to the original implementation.
+The key part to the `modifyLine` function is checking if any of the known method patterns apply, then splicing in the hexadecimal encoded identifier that follows Groovy normal identifier naming rules.
+
+[source,java]
+----
+public class ExtendedStringParameterParser extends AntlrParserPlugin {
+
+    @Override
+    public Reduction parseCST(SourceUnit sourceUnit, Reader reader) throws CompilationFailedException {
+        BufferedReader bufferedReader = new BufferedReader(reader);
+        String modifiedSource = bufferedReader.lines()
+                .map(this::modifyLine)
+                .collect(joining("\n"));
+        Reader modifiedReader = new StringReader(modifiedSource);
+        return super.parseCST(sourceUnit, modifiedReader);
+    }
+
+    private String modifyLine(String line) {
+        return methodPatterns.stream()
+                .map(pattern -> pattern.matcher(line))
+                .filter(Matcher::find)
+                .findFirst()
+                .map(matcher -> {
+                    String identifier = matcher.group(1);
+                    String hexIdentifier = IDENTIFIER_MARKER + encodeHex(identifier.getBytes());
+                    StringBuilder modifiedLine = new StringBuilder(line);
+                    int identifierIndex = modifiedLine.indexOf(identifier);
+                    modifiedLine.delete(identifierIndex, identifierIndex + identifier.length());
+                    modifiedLine.insert(identifierIndex, hexIdentifier);
+                    return modifiedLine.toString();
+                })
+                .orElse(line);
+    }
+----
 
 == Annotating your Expectations
+The next piece involves setting up an annotation that can be used to mark which methods that should support the extended identifier syntax.
+
+[source,groovy]
+----
+abstract class Dsl extends DslScript {
+    Set<Assay> assays = new HashSet<>()
+    Set<CompositeAssay> compositeAssays = new HashSet<>();
+
+    @ExtendedStringParameter <1>
+    def assay(String name) {
+        def assay = new Assay(name: name)
+        assays.add(assay)
+        getBinding().setVariable(name, assay)
+        assay
+    }
+
+    @ExtendedStringParameter(endTokens = [EOL, "with"]) <2>
+    def compositeAssay(String name) {
+        def compositeAssay = new CompositeAssay(name: name)
+        compositeAssays.add(compositeAssay)
+        getBinding().setVariable(name, compositeAssay)
+        compositeAssay
+    }
+
+}
+
+class CompositeAssay {
+    String name
+    private Assay assay
+
+    def assay(Assay assay) { <3>
+        this.assay = assay
+    }
+}
+----
+<1> By default the `@ExtendedStringParameter` will glob the rest of the line as the string argument.
+<2> Or you can specify what tokens demarcate the end of the identifier, non inclusive.
+<3> This method would have to be annotated if the method name was different from what defined `Assay`s.
+
+When constructing the parser plugin, a package must be provided to scan for usages of the `@ExtendedStringParameter` annotation.
+
+[source,java]
+----
+public class ExtendedStringParameterParser extends AntlrParserPlugin {
+
+    private static final String identifierPattern = "\\s+(\\S.*\\S)\\s*";
+
+    private Collection<Pattern> methodPatterns = new LinkedList<>();
+
+    public ExtendedStringParameterParser(String packageName) {
+        FastClasspathScanner classpathScanner = new FastClasspathScanner(packageName);
+        classpathScanner.matchClassesWithMethodAnnotation(ExtendedStringParameter.class,
+                ((matchingClass, matchingMethod) -> {
+                    ExtendedStringParameter annotation = matchingMethod.getAnnotation(ExtendedStringParameter.class);
+                    storeMethodPatterns(matchingMethod.getName(), annotation.endTokens());
+                }));
+        classpathScanner.scan();
+    }
+
+    private void storeMethodPatterns(String methodName, String[] endTokens) {
+        String patternStart = methodName + identifierPattern;
+        Arrays.stream(endTokens)
+                .sorted(this::preferNonEOLTokens)
+                .forEach(endToken -> methodPatterns.add(Pattern.compile(patternStart + endToken)));
+    }
+
+    /**
+     * Always order a non EOL token after anything else.
+     */
+    private int preferNonEOLTokens(String o1, String o2) {
+        if (EOL.equals(o1)) return 1;
+        if (EOL.equals(o2)) return -1;
+        return 0;
+    }
+----
+
+== Handling the unknown identifiers
+Now that the identifiers have been converted to hexadecimal, the script needs some plumbing to pick those up and translate them into their original strings.
+Groovy provides some metaprogramming methods such as `propertyMissing`.
+If the identifier starts with the special marker then the original string value is decoded and stored in a special property using another metaprogramming facility by adding new metaclass methods to Strings.
+This idea of the `DslScript` class is that your DSL will extend it.
+These patterns come from the book, https://www.packtpub.com/application-development/groovy-domain-specific-languages-second-edition[Groovy for Domain-specific languages].
+
+[source,groovy]
+----
+abstract class DslScript extends Script {
+
+    def static identifierProperties = Collections.synchronizedMap([:])
+
+    static {
+        String.metaClass.setBindingValue = { String value ->
+            identifierProperties[identityHashCode(delegate)] = value
+        }
+        String.metaClass.getBindingValue = { ->
+            identifierProperties[identityHashCode(delegate)]
+        }
+    }
+
+    def propertyMissing(String propertyName) {
+        if (propertyName.startsWith(IDENTIFIER_MARKER)) {
+            def identifier = new String(propertyName.substring(IDENTIFIER_MARKER.length()).decodeHex())
+            identifier.setBindingValue(propertyName)
+            return identifier
+        }
+        propertyName
+    }
+
+}
+----
+
+In addition the `Binding` needs to be extended to store variables by their hexadecimal form so other methods can take advantage of strong typing.
+
+[source,groovy]
+----
+class DslBinding extends Binding {
+
+    @Override
+    void setVariable(String name, Object value) {
+        String bindingValue = name.getBindingValue()
+        if (bindingValue != null) {
+            super.setVariable(bindingValue, value)
+        } else {
+            super.setVariable(name, value)
+        }
+    }
+
+}
+----
+
+== Tying it all together
+Finally the DSL can be executed by configuring the `GroovyShell` with all the pieces.
+
+[source,groovy]
+----
+def conf = new CompilerConfiguration()
+conf.scriptBaseClass = Dsl.name
+conf.pluginFactory = new ParserPluginFactory() {
+    @Override
+    ParserPlugin createParserPlugin() {
+        new ExtendedStringParameterParser("my.dsl")
+    }
+}
+def binding = new DslBinding()
+def shell = new GroovyShell(this.class.classLoader, binding, conf)
+Dsl result = shell.parse(new InputStreamReader(this.class.classLoader.getResourceAsStream("Script.dsl"))) as Dsl
+result.run()
+----
+
+If you made it this far, check out the source.
