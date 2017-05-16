@@ -30,9 +30,6 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
         FastClasspathScanner classpathScanner = new FastClasspathScanner(packageName);
         classpathScanner.matchClassesWithMethodAnnotation(ExtendedStringParameter.class,
                 ((matchingClass, matchingMethod) -> {
-                    if (!String.class.isAssignableFrom(matchingMethod.getParameterTypes()[0])) {
-                        throw new IllegalArgumentException(String.format("The first argument of %s must be a String", matchingMethod));
-                    }
                     ExtendedStringParameter annotation = matchingMethod.getAnnotation(ExtendedStringParameter.class);
                     storeMethodPatterns(matchingMethod.getName(), annotation.endTokens());
                 }));
@@ -69,6 +66,7 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
         return methodPatterns.stream()
                 .map(pattern -> pattern.matcher(line))
                 .filter(Matcher::find)
+                .findFirst()
                 .map(matcher -> {
                     String identifier = matcher.group(1);
                     String hexIdentifier = IDENTIFIER_MARKER + encodeHex(identifier.getBytes());
@@ -78,7 +76,6 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
                     modifiedLine.insert(identifierIndex, hexIdentifier);
                     return modifiedLine.toString();
                 })
-                .findFirst()
                 .orElse(line);
     }
 }

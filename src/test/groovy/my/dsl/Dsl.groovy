@@ -21,6 +21,7 @@ abstract class Dsl extends DslScript {
     def compositeAssay(String name) {
         def compositeAssay = new CompositeAssay(name: name)
         compositeAssays.add(compositeAssay)
+        getBinding().setVariable(name, compositeAssay)
         compositeAssay
     }
 
