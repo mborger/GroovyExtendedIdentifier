@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.borgernet.dsl.ExtendedStringParameter.EOL;
+import static com.borgernet.dsl.ExtendedStringParameter.IDENTIFIER_MARKER;
 import static java.util.stream.Collectors.joining;
 import static org.codehaus.groovy.runtime.EncodingGroovyMethods.encodeHex;
 
@@ -70,7 +71,7 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
                 .filter(Matcher::find)
                 .map(matcher -> {
                     String identifier = matcher.group(1);
-                    String hexIdentifier = "__" + encodeHex(identifier.getBytes());
+                    String hexIdentifier = IDENTIFIER_MARKER + encodeHex(identifier.getBytes());
                     StringBuilder modifiedLine = new StringBuilder(line);
                     int identifierIndex = modifiedLine.indexOf(identifier);
                     modifiedLine.delete(identifierIndex, identifierIndex + identifier.length());

@@ -1,5 +1,6 @@
 package com.borgernet.dsl
 
+import static com.borgernet.dsl.ExtendedStringParameter.IDENTIFIER_MARKER
 import static java.lang.System.identityHashCode
 
 abstract class DslScript extends Script {
@@ -16,8 +17,8 @@ abstract class DslScript extends Script {
     }
 
     def propertyMissing(String propertyName) {
-        if (propertyName.startsWith("__")) {
-            def identifier = new String(propertyName.substring(2).decodeHex())
+        if (propertyName.startsWith(IDENTIFIER_MARKER)) {
+            def identifier = new String(propertyName.substring(IDENTIFIER_MARKER.length()).decodeHex())
             identifier.setBindingValue(propertyName)
             return identifier
         }

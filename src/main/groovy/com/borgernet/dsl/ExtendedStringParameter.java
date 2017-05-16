@@ -21,6 +21,8 @@ public @interface ExtendedStringParameter {
      */
     String EOL = "$";
 
+    String IDENTIFIER_MARKER = "__";
+
     /**
      * The tokens that mark the end of the String parameter
      *
