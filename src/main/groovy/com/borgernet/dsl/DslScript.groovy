@@ -1,6 +1,6 @@
 package com.borgernet.dsl
 
-import static com.borgernet.dsl.ExtendedStringParameter.IDENTIFIER_MARKER
+import static ExtendedIdentifierPattern.IDENTIFIER_MARKER
 import static java.lang.System.identityHashCode
 
 abstract class DslScript extends Script {

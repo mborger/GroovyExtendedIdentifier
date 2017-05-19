@@ -8,13 +8,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * Indicates that the first String parameter of this method
- * should be treated as an extended String meaning everything
+ * should be treated as an extended identifier meaning everything
  * after the method name until one of the end tokens is found
- * will be captured as the String argument.
+ * will be captured as the String parameter.
  */
 @Target(METHOD)
 @Retention(RUNTIME)
-public @interface ExtendedStringParameter {
+public @interface ExtendedIdentifierPattern {
 
     /**
      * Token that represents matching the end of a line

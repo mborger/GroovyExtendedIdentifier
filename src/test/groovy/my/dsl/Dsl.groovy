@@ -1,15 +1,15 @@
 package my.dsl
 
 import com.borgernet.dsl.DslScript
-import com.borgernet.dsl.ExtendedStringParameter
+import com.borgernet.dsl.ExtendedIdentifierPattern
 
-import static com.borgernet.dsl.ExtendedStringParameter.EOL
+import static ExtendedIdentifierPattern.EOL
 
 abstract class Dsl extends DslScript {
     Set<Assay> assays = new HashSet<>()
     Set<CompositeAssay> compositeAssays = new HashSet<>();
 
-    @ExtendedStringParameter
+    @ExtendedIdentifierPattern
     def assay(String name) {
         def assay = new Assay(name: name)
         assays.add(assay)
@@ -17,7 +17,7 @@ abstract class Dsl extends DslScript {
         assay
     }
 
-    @ExtendedStringParameter(endTokens = [EOL, "with"])
+    @ExtendedIdentifierPattern(endTokens = [EOL, "with"])
     def compositeAssay(String name) {
         def compositeAssay = new CompositeAssay(name: name)
         compositeAssays.add(compositeAssay)

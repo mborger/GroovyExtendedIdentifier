@@ -1,7 +1,7 @@
 package my.dsl
 
 import com.borgernet.dsl.DslBinding
-import com.borgernet.dsl.ExtendedStringParameterParser
+import com.borgernet.dsl.ExtendedIdentifierParser
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.ParserPlugin
 import org.codehaus.groovy.control.ParserPluginFactory
@@ -15,7 +15,9 @@ class DslTest extends Specification {
         conf.pluginFactory = new ParserPluginFactory() {
             @Override
             ParserPlugin createParserPlugin() {
-                new ExtendedStringParameterParser("my.dsl")
+                def parser = new ExtendedIdentifierParser()
+                parser.scanPackage("my.dsl")
+                parser
             }
         }
         def binding = new DslBinding()

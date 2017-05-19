@@ -15,41 +15,32 @@ import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.borgernet.dsl.ExtendedStringParameter.EOL;
-import static com.borgernet.dsl.ExtendedStringParameter.IDENTIFIER_MARKER;
+import static com.borgernet.dsl.ExtendedIdentifierPattern.EOL;
+import static com.borgernet.dsl.ExtendedIdentifierPattern.IDENTIFIER_MARKER;
 import static java.util.stream.Collectors.joining;
 import static org.codehaus.groovy.runtime.EncodingGroovyMethods.encodeHex;
 
-public class ExtendedStringParameterParser extends AntlrParserPlugin {
+public class ExtendedIdentifierParser extends AntlrParserPlugin {
 
     private static final String identifierPattern = "\\s+(\\S.*\\S)\\s*";
 
-    private Collection<Pattern> methodPatterns = new LinkedList<>();
+    private Collection<Pattern> identifierPatterns = new LinkedList<>();
 
-    public ExtendedStringParameterParser(String packageName) {
+    public void addPattern(String methodName, String... endTokens) {
+        String patternStart = methodName + identifierPattern;
+        Arrays.stream(endTokens).forEach(endToken -> {
+            identifierPatterns.add(Pattern.compile(patternStart + endToken));
+        });
+    }
+
+    public void scanPackage(String packageName) {
         FastClasspathScanner classpathScanner = new FastClasspathScanner(packageName);
-        classpathScanner.matchClassesWithMethodAnnotation(ExtendedStringParameter.class,
+        classpathScanner.matchClassesWithMethodAnnotation(ExtendedIdentifierPattern.class,
                 ((matchingClass, matchingMethod) -> {
-                    ExtendedStringParameter annotation = matchingMethod.getAnnotation(ExtendedStringParameter.class);
-                    storeMethodPatterns(matchingMethod.getName(), annotation.endTokens());
+                    ExtendedIdentifierPattern annotation = matchingMethod.getAnnotation(ExtendedIdentifierPattern.class);
+                    addPattern(matchingMethod.getName(), annotation.endTokens());
                 }));
         classpathScanner.scan();
-    }
-
-    private void storeMethodPatterns(String methodName, String[] endTokens) {
-        String patternStart = methodName + identifierPattern;
-        Arrays.stream(endTokens)
-                .sorted(this::preferNonEOLTokens)
-                .forEach(endToken -> methodPatterns.add(Pattern.compile(patternStart + endToken)));
-    }
-
-    /**
-     * Always order a non EOL token after anything else.
-     */
-    private int preferNonEOLTokens(String o1, String o2) {
-        if (EOL.equals(o1)) return 1;
-        if (EOL.equals(o2)) return -1;
-        return 0;
     }
 
     @Override
@@ -63,7 +54,8 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
     }
 
     private String modifyLine(String line) {
-        return methodPatterns.stream()
+        return identifierPatterns.stream()
+                .sorted(ExtendedIdentifierParser::orderEOLPatternsLast)
                 .map(pattern -> pattern.matcher(line))
                 .filter(Matcher::find)
                 .findFirst()
@@ -77,5 +69,16 @@ public class ExtendedStringParameterParser extends AntlrParserPlugin {
                     return modifiedLine.toString();
                 })
                 .orElse(line);
+    }
+
+    /**
+     * Always order an EOL pattern after anything else.
+     */
+    private static int orderEOLPatternsLast(Pattern o1, Pattern o2) {
+        boolean o1MatchesEOL = o1.pattern().contains(EOL);
+        boolean o2MatchesEOL = o2.pattern().contains(EOL);
+        if (!o1MatchesEOL && o2MatchesEOL) return -1;
+        if (o1MatchesEOL && !o2MatchesEOL) return 1;
+        return 0;
     }
 }
