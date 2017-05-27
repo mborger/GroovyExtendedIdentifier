@@ -26,6 +26,10 @@ public class ExtendedIdentifierParser extends AntlrParserPlugin {
 
     private Collection<Pattern> identifierPatterns = new LinkedList<>();
 
+    public void addPattern(String methodName) {
+        addPattern(methodName, EOL);
+    }
+
     public void addPattern(String methodName, String... endTokens) {
         String patternStart = methodName + identifierPattern;
         Arrays.stream(endTokens).forEach(endToken -> {
