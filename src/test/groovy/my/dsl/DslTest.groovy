@@ -17,6 +17,7 @@ class DslTest extends Specification {
             ParserPlugin createParserPlugin() {
                 def parser = new ExtendedIdentifierParser()
                 parser.scanPackage("my.dsl")
+                parser.addPattern("manuallySpecifiedPatternMethod");
                 parser
             }
         }

@@ -25,4 +25,8 @@ abstract class Dsl extends DslScript {
         compositeAssay
     }
 
+    def manuallySpecifiedPatternMethod(Assay assay) {
+        assays.add(assay);
+    }
+
 }

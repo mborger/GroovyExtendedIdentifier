@@ -5,3 +5,5 @@ compositeAssay RS456-789 with {
 }
 
 compositeAssay *&<>WeirdName-_>
+
+manuallySpecifiedPatternMethod RS123A->C
