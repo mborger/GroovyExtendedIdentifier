@@ -3,8 +3,6 @@ package my.dsl
 import com.borgernet.dsl.DslBinding
 import com.borgernet.dsl.ExtendedIdentifierParser
 import org.codehaus.groovy.control.CompilerConfiguration
-import org.codehaus.groovy.control.ParserPlugin
-import org.codehaus.groovy.control.ParserPluginFactory
 import spock.lang.Specification
 
 class DslTest extends Specification {
@@ -12,14 +10,11 @@ class DslTest extends Specification {
         setup:
         def conf = new CompilerConfiguration()
         conf.scriptBaseClass = Dsl.name
-        conf.pluginFactory = new ParserPluginFactory() {
-            @Override
-            ParserPlugin createParserPlugin() {
+        conf.pluginFactory = {
                 def parser = new ExtendedIdentifierParser()
                 parser.scanPackage("my.dsl")
                 parser.addPattern("manuallySpecifiedPatternMethod")
                 parser
-            }
         }
         def binding = new DslBinding()
         def shell = new GroovyShell(this.class.classLoader, binding, conf)
