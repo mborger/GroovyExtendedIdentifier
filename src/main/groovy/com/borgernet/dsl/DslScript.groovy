@@ -17,12 +17,19 @@ abstract class DslScript extends Script {
     }
 
     def propertyMissing(String propertyName) {
-        if (propertyName.startsWith(IDENTIFIER_MARKER)) {
-            def identifier = new String(propertyName.substring(IDENTIFIER_MARKER.length()).decodeHex())
-            identifier.setBindingValue(propertyName)
-            return identifier
-        }
-        propertyName
+        if (isExtendedIdentifier(propertyName))
+            return decodeExtendedIdentifier(propertyName)
+        throw new MissingPropertyException(propertyName, Void)
+    }
+
+    private static isExtendedIdentifier(String propertyName) {
+        propertyName.startsWith(IDENTIFIER_MARKER)
+    }
+
+    private static decodeExtendedIdentifier(String propertyName) {
+        def identifier = new String(propertyName.substring(IDENTIFIER_MARKER.length()).decodeHex())
+        identifier.setBindingValue(propertyName)
+        return identifier
     }
 
 }
