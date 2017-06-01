@@ -97,17 +97,11 @@ def shell = new GroovyShell(this.class.classLoader, binding, conf)
 ----
 <1> Instructs the parser to register method translation patterns based upon annotations. How these work are discussed below.
 <2> Instruct the parser to treat the rest of the line after "manuallySpecifiedPatternMethod" as an extended identifier.
-<3> Use our custom Binding implementation to register variables using extended identifiers.
+<3> Use our custom Binding implementation to register variables named with extended identifiers.
 
-
-
-
-
-
-
-////
-== Annotating your Expectations
-The next piece involves setting up an annotation that can be used to mark which methods that should support the extended identifier syntax.
+=== Annotating the DSL
+The parser can be configured to scan a package for annotations to register the patterns for identifier translation.
+There is one provided annotation `@ExtendedIdentifierPattern` which will register the name of the annotated method as a maker for accepting extended identifiers.
 
 [source,groovy]
 ----
@@ -115,7 +109,7 @@ abstract class Dsl extends DslScript {
     Set<Assay> assays = new HashSet<>()
     Set<CompositeAssay> compositeAssays = new HashSet<>();
 
-    @ExtendedStringParameter <1>
+    @ExtendedIdentifierPattern // <1>
     def assay(String name) {
         def assay = new Assay(name: name)
         assays.add(assay)
@@ -123,7 +117,7 @@ abstract class Dsl extends DslScript {
         assay
     }
 
-    @ExtendedStringParameter(endTokens = [EOL, "with"]) <2>
+    @ExtendedIdentifierPattern(endTokens = [EOL, "with"]) // <2>
     def compositeAssay(String name) {
         def compositeAssay = new CompositeAssay(name: name)
         compositeAssays.add(compositeAssay)
@@ -131,129 +125,24 @@ abstract class Dsl extends DslScript {
         compositeAssay
     }
 
+    def manuallySpecifiedPatternMethod(Assay assay) { // <3>
+        assays.add(assay);
+    }
 }
 
 class CompositeAssay {
     String name
     private Assay assay
 
-    def assay(Assay assay) { <3>
+    def assay(Assay assay) { // <4>
         this.assay = assay
     }
 }
 ----
-<1> By default the `@ExtendedStringParameter` will glob the rest of the line as the string argument.
+<1> By default the `@ExtendedStringPattern` will glob the rest of the line as the string argument.
 <2> Or you can specify what tokens demarcate the end of the identifier, non inclusive.
-<3> This method would have to be annotated if the method name was different from what defined `Assay`s.
+<3> This method pattern was registered with the parser directly.
+<4> This method would have to be annotated if the method name was different from what defined `Assay`s.
 
-When constructing the parser plugin, a package must be provided to scan for usages of the `@ExtendedStringParameter` annotation.
-
-[source,java]
-----
-public class ExtendedStringParameterParser extends AntlrParserPlugin {
-
-    private static final String identifierPattern = "\\s+(\\S.*\\S)\\s*";
-
-    private Collection<Pattern> methodPatterns = new LinkedList<>();
-
-    public ExtendedStringParameterParser(String packageName) {
-        FastClasspathScanner classpathScanner = new FastClasspathScanner(packageName);
-        classpathScanner.matchClassesWithMethodAnnotation(ExtendedStringParameter.class,
-                ((matchingClass, matchingMethod) -> {
-                    ExtendedStringParameter annotation = matchingMethod.getAnnotation(ExtendedStringParameter.class);
-                    storeMethodPatterns(matchingMethod.getName(), annotation.endTokens());
-                }));
-        classpathScanner.scan();
-    }
-
-    private void storeMethodPatterns(String methodName, String[] endTokens) {
-        String patternStart = methodName + identifierPattern;
-        Arrays.stream(endTokens)
-                .sorted(this::preferNonEOLTokens)
-                .forEach(endToken -> methodPatterns.add(Pattern.compile(patternStart + endToken)));
-    }
-
-    /**
-     * Always order a non EOL token after anything else.
-     */
-    private int preferNonEOLTokens(String o1, String o2) {
-        if (EOL.equals(o1)) return 1;
-        if (EOL.equals(o2)) return -1;
-        return 0;
-    }
-----
-
-== Handling the unknown identifiers
-Now that the identifiers have been converted to hexadecimal, the script needs some plumbing to pick those up and translate them into their original strings.
-Groovy provides some metaprogramming methods such as `propertyMissing`.
-If the identifier starts with the special marker then the original string value is decoded and stored in a special property using another metaprogramming facility by adding new metaclass methods to Strings.
-This idea of the `DslScript` class is that your DSL will extend it.
-These patterns come from the book, https://www.packtpub.com/application-development/groovy-domain-specific-languages-second-edition[Groovy for Domain-specific languages].
-
-[source,groovy]
-----
-abstract class DslScript extends Script {
-
-    def static identifierProperties = Collections.synchronizedMap([:])
-
-    static {
-        String.metaClass.setBindingValue = { String value ->
-            identifierProperties[identityHashCode(delegate)] = value
-        }
-        String.metaClass.getBindingValue = { ->
-            identifierProperties[identityHashCode(delegate)]
-        }
-    }
-
-    def propertyMissing(String propertyName) {
-        if (propertyName.startsWith(IDENTIFIER_MARKER)) {
-            def identifier = new String(propertyName.substring(IDENTIFIER_MARKER.length()).decodeHex())
-            identifier.setBindingValue(propertyName)
-            return identifier
-        }
-        propertyName
-    }
-
-}
-----
-
-In addition the `Binding` needs to be extended to store variables by their hexadecimal form so other methods can take advantage of strong typing.
-
-[source,groovy]
-----
-class DslBinding extends Binding {
-
-    @Override
-    void setVariable(String name, Object value) {
-        String bindingValue = name.getBindingValue()
-        if (bindingValue != null) {
-            super.setVariable(bindingValue, value)
-        } else {
-            super.setVariable(name, value)
-        }
-    }
-
-}
-----
-
-== Tying it all together
-Finally the DSL can be executed by configuring the `GroovyShell` with all the pieces.
-
-[source,groovy]
-----
-def conf = new CompilerConfiguration()
-conf.scriptBaseClass = Dsl.name
-conf.pluginFactory = new ParserPluginFactory() {
-    @Override
-    ParserPlugin createParserPlugin() {
-        new ExtendedStringParameterParser("my.dsl")
-    }
-}
-def binding = new DslBinding()
-def shell = new GroovyShell(this.class.classLoader, binding, conf)
-Dsl result = shell.parse(new InputStreamReader(this.class.classLoader.getResourceAsStream("Script.dsl"))) as Dsl
-result.run()
-----
-
-If you made it this far, check out the source.
-////
+Thanks for reading!
+You can check out the full source and provided tests.
