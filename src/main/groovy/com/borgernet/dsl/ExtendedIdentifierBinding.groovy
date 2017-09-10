@@ -1,6 +1,6 @@
 package com.borgernet.dsl
 
-class DslBinding extends Binding {
+class ExtendedIdentifierBinding extends Binding {
 
     @Override
     void setVariable(String name, Object value) {

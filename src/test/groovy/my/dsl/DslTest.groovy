@@ -1,6 +1,6 @@
 package my.dsl
 
-import com.borgernet.dsl.DslBinding
+import com.borgernet.dsl.ExtendedIdentifierBinding
 import com.borgernet.dsl.ExtendedIdentifierParser
 import org.codehaus.groovy.control.CompilerConfiguration
 import spock.lang.Specification
@@ -16,7 +16,7 @@ class DslTest extends Specification {
                 parser.addPattern("manuallySpecifiedPatternMethod")
                 parser
         }
-        def binding = new DslBinding()
+        def binding = new ExtendedIdentifierBinding()
         def shell = new GroovyShell(this.class.classLoader, binding, conf)
 
         when:

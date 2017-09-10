@@ -1,11 +1,11 @@
 package my.dsl
 
-import com.borgernet.dsl.DslScript
 import com.borgernet.dsl.ExtendedIdentifierPattern
+import com.borgernet.dsl.ExtendedIdentifierScript
 
 import static ExtendedIdentifierPattern.EOL
 
-abstract class Dsl extends DslScript {
+abstract class Dsl extends ExtendedIdentifierScript {
     Set<Assay> assays = new HashSet<>()
     Set<CompositeAssay> compositeAssays = new HashSet<>();
 

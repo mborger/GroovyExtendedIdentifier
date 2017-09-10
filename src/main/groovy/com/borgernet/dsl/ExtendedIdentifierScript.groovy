@@ -3,7 +3,7 @@ package com.borgernet.dsl
 import static ExtendedIdentifierPattern.IDENTIFIER_MARKER
 import static java.lang.System.identityHashCode
 
-abstract class DslScript extends Script {
+abstract class ExtendedIdentifierScript extends Script {
 
     def static identifierProperties = Collections.synchronizedMap([:])
 
