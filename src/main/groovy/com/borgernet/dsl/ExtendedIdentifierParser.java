@@ -20,6 +20,9 @@ import static com.borgernet.dsl.ExtendedIdentifierPattern.IDENTIFIER_MARKER;
 import static java.util.stream.Collectors.joining;
 import static org.codehaus.groovy.runtime.EncodingGroovyMethods.encodeHex;
 
+/**
+ * Rewrites the configured identifiers the source can be parsed as valid Groovy.
+ */
 public class ExtendedIdentifierParser extends AntlrParserPlugin {
 
     private static final String identifierPattern = "\\s+(\\S.*\\S)\\s*";

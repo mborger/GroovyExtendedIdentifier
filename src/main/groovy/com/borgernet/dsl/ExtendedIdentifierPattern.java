@@ -17,19 +17,19 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface ExtendedIdentifierPattern {
 
     /**
-     * Token that represents matching the end of a line
+     * Token that represents matching the end of a line.
      */
     String EOL = "$";
 
     /**
-     * Unicode character used to mark encoded identifiers
+     * Unicode character used to mark encoded identifiers.
      *
      * https://en.wikipedia.org/wiki/Palatal_clicks
      */
     String IDENTIFIER_MARKER = "\u01C2";
 
     /**
-     * The tokens that mark the end of the String parameter
+     * The tokens that mark the end of the String parameter.
      *
      * The source lines will be matched against the tokens in
      * the order provided. You will want to place the most
