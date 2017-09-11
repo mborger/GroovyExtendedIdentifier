@@ -1,0 +1,17 @@
+= GroovyExtendedIdentifier
+
+This library provides a way of supporting identifiers in your DSL that would normally be rejected as invalid Groovy code.
+
+[source,groovy]
+----
+assay RS123A->C
+
+compositeAssay RS456-789 with {
+    assay RS123A->C
+}
+----
+
+== How it works
+I wrote a blog post about how this works at http://www.borgernet.com.
+
+A good starting point in the code would be the link:src/test/groovy/my/dsl/DslTest.groovy[integration test].
